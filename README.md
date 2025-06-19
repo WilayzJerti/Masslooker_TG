@@ -28,8 +28,7 @@
 
     Клонируйте репозиторий:
 
-    git clone <URL вашего репозитория>
-    cd masslooker_tg
+    git clone https://github.com/WilayzJerti/Masslooker_TG
 
     Установите зависимости:
 
@@ -38,8 +37,6 @@
     Настройте config.py:
 
         Получите ваши API_ID и API_HASH на my.telegram.org, в разделе "API development tools".
-
-        Переименуйте файл config.py.template в config.py.
 
         Вставьте полученные API_ID и API_HASH в файл config.py.
 
