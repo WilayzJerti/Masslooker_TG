@@ -1,5 +1,7 @@
 # Масслукинг Телеграм-Историй (Masslooking App)
 
+**English version - [EN](https://github.com/WilayzJerti/Masslooker_TG/blob/main/README.md)**
+
 Это программа на Python, для масслукинга с функцией мулти-аккаунтом, прокси подключением, и веб-админкой
 
 ![изображение](https://github.com/user-attachments/assets/77efc520-7fd9-43de-80c9-144f455f8619)
