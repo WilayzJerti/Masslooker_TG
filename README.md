@@ -63,3 +63,9 @@ python run.py
 - Use is at **your own** risk. Excessive activity may lead to *temporary* or **permanent** restrictions on the part of Telegram.
 
 - Do not share **your**`API_ID`, `API_HASH` and the `.session` **file with anyone**.
+
+## 📑 TODO
+
+1. Make anti-ban protection, imitation of a human.
+2. Expand the logger, make it more detailed
+3. Add analytics to the admin panel (how many stories were viewed, how many groups were found, etc.)
