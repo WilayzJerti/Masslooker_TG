@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель управления Masslooker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .log-line { white-space: pre-wrap; word-break: break-all; }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <h1 class="text-4xl font-bold mb-6 text-gray-900">Панель управления Masslooker</h1>
+
+        <!-- Блок со статусом и настройками -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Управление воркером -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold mb-4">Статус Воркера</h2>
+                <div class="flex items-center space-x-4">
+                    <span class="text-lg font-medium">Текущий статус:</span>
+                    {% if settings.worker_status == 'running' %}
+                        <span class="px-4 py-1 text-sm font-bold text-white bg-green-500 rounded-full">ЗАПУЩЕН</span>
+                    {% else %}
+                        <span class="px-4 py-1 text-sm font-bold text-white bg-red-500 rounded-full">ОСТАНОВЛЕН</span>
+                    {% endif %}
+                </div>
+                <p class="text-sm text-gray-500 mt-2">Нажмите кнопку, чтобы запустить или остановить процесс просмотра историй.</p>
+                <form action="/toggle_worker" method="post" class="mt-4">
+                    {% if settings.worker_status == 'running' %}
+                        <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Остановить</button>
+                    {% else %}
+                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Запустить</button>
+                    {% endif %}
+                </form>
+            </div>
+
+            <!-- Общие настройки -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold mb-4">Настройки</h2>
+                <form action="/save_settings" method="post">
+                    <div class="mb-4">
+                        <label for="rate_limit" class="block text-sm font-medium text-gray-700">Скорость (просмотров в час)</label>
+                        <input type="number" id="rate_limit" name="rate_limit" value="{{ settings.rate_limit_per_hour }}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div class="mb-4">
+                        <label for="keywords" class="block text-sm font-medium text-gray-700">Ключевые слова для поиска (через запятую)</label>
+                        <input type="text" id="keywords" name="keywords" value="{{ settings.search_keywords }}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <p class="text-sm text-gray-500 mb-4">Найдено целей в `targets.txt`: <span class="font-bold">{{ targets_count }}</span></p>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Сохранить настройки</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Уведомления -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="toast p-4 mb-4 text-sm rounded-lg 
+                    {% if category == 'success' %} bg-green-100 text-green-700 {% else %} bg-red-100 text-red-700 {% endif %}" 
+                    role="alert">
+                    <span class="font-medium">{{ message }}</span>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Управление аккаунтами -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Управление аккаунтами</h2>
+            <form action="/add_account" method="post" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                <div class="md:col-span-1">
+                    <label for="phone" class="block text-sm font-medium text-gray-700">Телефон</label>
+                    <input type="text" name="phone" placeholder="+79001234567" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="md:col-span-1">
+                    <label for="api_id" class="block text-sm font-medium text-gray-700">API ID</label>
+                    <input type="text" name="api_id" placeholder="123456" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="md:col-span-1">
+                    <label for="api_hash" class="block text-sm font-medium text-gray-700">API Hash</label>
+                    <input type="text" name="api_hash" placeholder="abcdef123456" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="md:col-span-1">
+                    <label for="proxy" class="block text-sm font-medium text-gray-700">Прокси (опционально)</label>
+                    <input type="text" name="proxy" placeholder="socks5://user:pass@host:port" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Добавить аккаунт</button>
+            </form>
+
+            <div class="mt-6 overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Телефон</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">API ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Прокси</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for account in accounts %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ account.phone }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ account.api_id }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ account.proxy or 'Нет' }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <form action="/delete_account/{{ account.id }}" method="post" onsubmit="return confirm('Вы уверены, что хотите удалить этот аккаунт?');">
+                                    <button type="submit" class="text-red-600 hover:text-red-900">Удалить</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center text-gray-500">Аккаунты не добавлены.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Логи -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold mb-4">Логи</h2>
+            <div class="bg-gray-900 text-white font-mono text-sm p-4 rounded-md h-64 overflow-y-scroll">
+                {% for line in logs | reverse %}
+                    <p class="log-line">{{ line.strip() }}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Скрипт для отображения и скрытия уведомлений
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(toast => {
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 5000); // Скрыть через 5 секунд
+            });
+        });
+    </script>
+</body>
+</html>
